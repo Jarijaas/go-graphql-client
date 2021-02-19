@@ -212,7 +212,7 @@ func (sc *SubscriptionClient) init() error {
 		var conn WebsocketConn
 		// allow custom websocket client
 		if sc.conn == nil {
-			conn, err = newWebsocketConn(sc)
+			conn, err = sc.createConn(sc)
 			if err == nil {
 				sc.conn = conn
 			}
@@ -253,7 +253,8 @@ func (sc *SubscriptionClient) printLog(message interface{}, opType OperationMess
 }
 
 func (sc *SubscriptionClient) sendConnectionInit() (err error) {
-	var bParams []byte = nil
+	// Some server implementations (such as postgraphile) throw an error if the payload struct is undefined or null
+	var bParams = []byte("{}")
 	if sc.connectionParams != nil {
 
 		bParams, err = json.Marshal(sc.connectionParams)
@@ -572,7 +573,6 @@ func (wh *websocketHandler) Close() error {
 }
 
 func newWebsocketConn(sc *SubscriptionClient) (WebsocketConn, error) {
-
 	options := &websocket.DialOptions{
 		Subprotocols: []string{"graphql-ws"},
 	}
